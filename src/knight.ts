@@ -38,7 +38,6 @@ export class Knight extends Entity {
 	constructor() {
 		const img = new Image()
 		img.src = knight
-
 		super(new Vector2(100, 475), new Size(175, 100), 'transparent', 1.8, {
 			image: img,
 			subRect: {
@@ -46,19 +45,19 @@ export class Knight extends Entity {
 				size: new Size(175, 100),
 			},
 		})
-
 		this.childEntities = [new StateDisplay(this)]
-
 		this._state.enter()
 	}
 
 	_state: KnightState = new Idle(this)
+	prevStateName: States | null = null
 
 	get state(): KnightState {
 		return this._state
 	}
 
 	set state(state: KnightState) {
+		this.prevStateName = this._state.name
 		this._state = state
 		this._state.enter()
 	}
@@ -273,13 +272,21 @@ class Jump extends KnightState {
 		right: 16,
 	}
 
+	readonly velocityXFromRunning = {
+		left: -1,
+		right: 1,
+	}
+
 	maxFrameX = 6
 
 	enter() {
 		this.knight.frameX = 0
 		this.knight.maxFrameX = this.maxFrameX
 		this.knight.frameY = this.frameY[this.knight.facing]
-		this.knight.velocityX = 0
+		this.knight.velocityX =
+			this.knight.prevStateName === 'RUNNING'
+				? this.velocityXFromRunning[this.knight.facing]
+				: 0
 		this.knight.velocityY = -10
 		this.knight.reverseAnimation = false
 	}
@@ -308,7 +315,6 @@ class Attack1 extends KnightState {
 		this.knight.maxFrameX = this.maxFrameX
 		this.knight.frameY = this.frameY[this.knight.facing]
 		this.knight.velocityX = 0
-		// this.knight.animationMaxFrame = 6
 		this.knight.reverseAnimation = false
 	}
 
