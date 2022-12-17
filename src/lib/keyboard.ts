@@ -7,11 +7,11 @@ export class Keyboard {
 	} as const
 
 	static KEYS = {
-		A: 'a',
-		S: 's',
-		D: 'd',
+		a: 'a',
+		s: 's',
+		d: 'd',
 		w: 'w',
-		SPACE: ' ',
+		' ': ' ',
 	} as const
 
 	private _keys: Record<string, keyof typeof Keyboard.KEY_STATE> = {}
@@ -36,17 +36,69 @@ export class Keyboard {
 			this._keys[key] = Keyboard.KEY_STATE.RELEASED
 		}
 	}
-
-	public isDown(key: string) {
-		return this._keyExist(key) && this._keys[key] === Keyboard.KEY_STATE.DOWN
+	public isDown(key: string[]): boolean
+	public isDown(key: string): boolean
+	public isDown(key: string | string[]): boolean {
+		if (Array.isArray(key)) {
+			let res = false
+			for (const k of key) {
+				if (this._keyExist(k) && this._keys[k] === Keyboard.KEY_STATE.DOWN) {
+					res = true
+					break
+				}
+			}
+			return res
+		} else {
+			return this._keyExist(key) && this._keys[key] === Keyboard.KEY_STATE.DOWN
+		}
 	}
-	public isUp(key: string) {
+
+	public isUp(key: string[]): boolean
+	public isUp(key: string): boolean
+	public isUp(key: string | string[]): boolean {
+		if (Array.isArray(key)) {
+			let res = false
+			for (const k of key) {
+				if (this._keyExist(k) && this._keys[k] === Keyboard.KEY_STATE.UP) {
+					res = true
+					break
+				}
+			}
+			return res
+		}
 		return this._keyExist(key) && this._keys[key] === Keyboard.KEY_STATE.UP
 	}
-	public wasPressed(key: string) {
+	public wasPressed(key: string[]): boolean
+	public wasPressed(key: string): boolean
+	public wasPressed(key: string | string[]) {
+		if (Array.isArray(key)) {
+			let res = false
+			for (const k of key) {
+				if (this._keyExist(k) && this._keys[k] === Keyboard.KEY_STATE.PRESSED) {
+					res = true
+					break
+				}
+			}
+			return res
+		}
 		return this._keyExist(key) && this._keys[key] === Keyboard.KEY_STATE.PRESSED
 	}
-	public wasReleased(key: string) {
+	public wasReleased(key: string[]): boolean
+	public wasReleased(key: string): boolean
+	public wasReleased(key: string | string[]) {
+		if (Array.isArray(key)) {
+			let res = false
+			for (const k of key) {
+				if (
+					this._keyExist(k) &&
+					this._keys[k] === Keyboard.KEY_STATE.RELEASED
+				) {
+					res = true
+					break
+				}
+			}
+			return res
+		}
 		return (
 			this._keyExist(key) && this._keys[key] === Keyboard.KEY_STATE.RELEASED
 		)

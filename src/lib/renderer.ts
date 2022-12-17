@@ -1,4 +1,4 @@
-import { Position, Size } from './util'
+import { Vector2, Size } from './util'
 
 export class Canvas {
 	public element: HTMLCanvasElement
@@ -57,10 +57,17 @@ export class Canvas {
 export class Renderer {
 	private _ctx: CanvasRenderingContext2D
 
-	constructor(canvas: Canvas) {
-		let ctx = canvas.element.getContext('2d')!
+	constructor(private _canvas: Canvas) {
+		let ctx = _canvas.element.getContext('2d')!
 		if (!ctx) throw new Error('Error Context 2d')
 		this._ctx = ctx
+	}
+
+	/**
+	 * clear
+	 */
+	public clear() {
+		this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height)
 	}
 
 	/**
@@ -69,7 +76,7 @@ export class Renderer {
 	public draw(params: {
 		fill: string
 		size: Size
-		position: Position
+		position: Vector2
 		scale: number
 	}) {
 		this._ctx.fillStyle = params.fill
@@ -87,10 +94,10 @@ export class Renderer {
 	public drawImage(params: {
 		image: HTMLImageElement
 		size: Size
-		position: Position
+		position: Vector2
 		scale: number
 		subRect?: {
-			position: Position
+			position: Vector2
 			size: Size
 		}
 	}) {
@@ -99,7 +106,7 @@ export class Renderer {
 				params.image,
 				params.subRect.position.x,
 				params.subRect.position.y,
-				params.subRect.size.width * params.scale,
+				params.subRect.size.width,
 				params.subRect.size.height,
 				params.position.x,
 				params.position.y,

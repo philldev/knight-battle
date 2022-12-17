@@ -1,6 +1,6 @@
 import { Keyboard } from './keyboard'
 import { Renderer } from './renderer'
-import { Position, Size } from './util'
+import { Vector2, Size } from './util'
 import { World } from './world'
 
 export class Entity {
@@ -22,14 +22,14 @@ export class Entity {
 	}
 
 	constructor(
-		public position: Position,
+		public position: Vector2,
 		public size: Size,
 		public fill: string,
 		public scale: number,
 		public sprite?: {
 			image: HTMLImageElement
 			subRect?: {
-				position: Position
+				position: Vector2
 				size: Size
 			}
 		}
@@ -43,6 +43,11 @@ export class Entity {
 		this._world = world
 		this._renderer = renderer
 	}
+
+	/**
+	 * onStart
+	 */
+	public onStart() {}
 
 	/**
 	 * update

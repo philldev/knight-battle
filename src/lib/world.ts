@@ -17,6 +17,9 @@ export class World {
 	 * start world
 	 */
 	public start() {
+		for (const e of this._entities) {
+			e.onStart()
+		}
 		this._onStartCb?.(this)
 	}
 
@@ -32,6 +35,8 @@ export class World {
 	 * update world
 	 */
 	public update(timestamp: number) {
+		this._renderer.clear()
+
 		for (const e of this._entities) {
 			e.update(timestamp)
 			e.render()

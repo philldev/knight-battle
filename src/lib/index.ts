@@ -6,7 +6,7 @@ export class Game {
 
 	start() {
 		this._world.start()
-		this.update(0)
+		this.update()
 	}
 
 	init = () => {
@@ -20,9 +20,12 @@ export class Game {
 		})
 	}
 
-	update = (timeStamp: number) => {
-		this._world.update(timeStamp)
+	frame = 0
+
+	update = () => {
+		this._world.update(this.frame)
 		this._keyboard.update()
 		window.requestAnimationFrame(this.update)
+		this.frame++
 	}
 }

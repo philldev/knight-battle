@@ -1,38 +1,27 @@
-import './style.css'
-import bg from './assets/bg.png'
-import { Canvas, Renderer } from './lib/renderer'
-import { Keyboard } from './lib/keyboard'
-import { World } from './lib/world'
-import { Entity } from './lib/entity'
-import { Util } from './lib/util'
+import { Background } from './background'
+import { Knight } from './knight'
 import { Game } from './lib'
+import { Keyboard } from './lib/keyboard'
+import { Canvas, Renderer } from './lib/renderer'
+import { World } from './lib/world'
+import './style.css'
 
-const canvas = new Canvas({
+export const canvas = new Canvas({
 	bgColor: '#0e1217',
 }).appendTo(document.body)
-
 const renderer = new Renderer(canvas)
 const keyboard = new Keyboard()
 
-const bgImage = new Image(928, 793)
-bgImage.src = bg
+const bg = new Background(canvas)
+const knight = new Knight()
 
 const world = new World({
 	keyboard,
 	renderer,
 })
-	.spawn(
-		new Entity(
-			Util.position(0, canvas.height - 793 * 1.5),
-			Util.size(928, 793),
-			'red',
-			1.5,
-			{
-				image: bgImage,
-			}
-		)
-	)
-	.onStart((world) => {
+	.spawn(bg)
+	.spawn(knight)
+	.onStart(() => {
 		console.log('world start')
 	})
 
