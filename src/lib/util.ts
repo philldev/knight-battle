@@ -11,7 +11,9 @@ export interface Vector2 {
 export class Vector2 implements Vector2 {
 	constructor(public x: number, public y: number) {}
 
-	public set(data: { x?: number; y?: number }) {
+	public set(data: { x?: number; y?: number }): void
+	public set(data: Vector2): void
+	public set(data: { x?: number; y?: number } | Vector2) {
 		this.x = data.x ?? 0
 		this.y = data.y ?? 0
 	}

@@ -89,6 +89,20 @@ export class Renderer {
 	}
 
 	/**
+	 * drawText
+	 */
+	public drawText(params: {
+		font: string
+		fill: string
+		position: Vector2
+		text: string
+	}): void {
+		this._ctx.font = params.font
+		this._ctx.fillStyle = params.fill
+		this._ctx.fillText(params.text, params.position.x, params.position.y)
+	}
+
+	/**
 	 * draw
 	 */
 	public drawImage(params: {

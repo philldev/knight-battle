@@ -2,6 +2,38 @@ import knight from './assets/knight.png'
 import { Entity } from './lib/entity'
 import { Size, Vector2 } from './lib/util'
 
+class StateDisplay extends Entity {
+	constructor(private _knight: Knight) {
+		super(
+			new Vector2(_knight.position.x, 450),
+			new Size(_knight.size.width, 25),
+			'red',
+			_knight.scale
+		)
+
+		this.text = this._knight._state.name
+	}
+
+	text: string
+
+	public update(timestamp: number): void {
+		this.position.set({
+			x: this._knight.position.x,
+			y: this._knight.position.y - 50,
+		})
+		this.text = this._knight.state.name
+	}
+
+	public render(): void {
+		this.renderer.drawText({
+			font: '30px Comic Sans MS',
+			fill: this.fill,
+			position: this.position,
+			text: this.text,
+		})
+	}
+}
+
 export class Knight extends Entity {
 	constructor() {
 		const img = new Image()
@@ -14,6 +46,8 @@ export class Knight extends Entity {
 				size: new Size(175, 100),
 			},
 		})
+
+		this.childEntities = [new StateDisplay(this)]
 
 		this._state.enter()
 	}
@@ -81,10 +115,17 @@ export class Knight extends Entity {
 	}
 }
 
-type States = 'IDLE' | 'WALK' | 'JUMP'
+type States =
+	| 'IDLE'
+	| 'WALK'
+	| 'JUMP'
+	| 'RUNNING'
+	| 'ATTACK1'
+	| 'ATTACK2'
+	| 'ATTACK3'
 
 class KnightState {
-	constructor(public state: States) {}
+	constructor(public name: States) {}
 	enter() {}
 	update() {}
 }
@@ -189,7 +230,7 @@ class Walk extends KnightState {
 
 class Running extends KnightState {
 	constructor(public knight: Knight) {
-		super('WALK')
+		super('RUNNING')
 	}
 
 	readonly frameY = {
@@ -252,7 +293,7 @@ class Jump extends KnightState {
 
 class Attack1 extends KnightState {
 	constructor(public knight: Knight) {
-		super('JUMP')
+		super('ATTACK1')
 	}
 
 	readonly frameY = {
@@ -283,7 +324,7 @@ class Attack1 extends KnightState {
 
 class Attack2 extends KnightState {
 	constructor(public knight: Knight) {
-		super('JUMP')
+		super('ATTACK2')
 	}
 
 	readonly frameY = {
@@ -311,7 +352,7 @@ class Attack2 extends KnightState {
 
 class Attack3 extends KnightState {
 	constructor(public knight: Knight) {
-		super('JUMP')
+		super('ATTACK3')
 	}
 
 	readonly frameY = {
