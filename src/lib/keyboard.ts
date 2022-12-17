@@ -1,6 +1,7 @@
 export class Keyboard {
 	static KEY_STATE = {
 		PRESSED: 'PRESSED',
+		PRESSED_TWICE: 'PRESSED_TWICE',
 		RELEASED: 'RELEASED',
 		DOWN: 'DOWN',
 		UP: 'UP',
@@ -16,6 +17,8 @@ export class Keyboard {
 
 	private _keys: Record<string, keyof typeof Keyboard.KEY_STATE> = {}
 
+	public lastKey?: string = undefined
+
 	constructor() {
 		for (const key in Keyboard.KEYS) {
 			this._keys[key] = Keyboard.KEY_STATE.UP
@@ -26,9 +29,22 @@ export class Keyboard {
 		return this._keys[key] !== undefined
 	}
 
+	private _delta = 500
+	private _lastKeyPressTime = 0
+
 	public onPressed(key: string) {
 		if (this._keyExist(key) && this._keys[key] === Keyboard.KEY_STATE.UP) {
-			this._keys[key] = Keyboard.KEY_STATE.PRESSED
+			let keyPressTime = new Date().getTime()
+			if (keyPressTime - this._lastKeyPressTime <= this._delta) {
+				console.log('pressed twice')
+
+				this._keys[key] = Keyboard.KEY_STATE.PRESSED_TWICE
+				keyPressTime = 0
+			} else {
+				this._keys[key] = Keyboard.KEY_STATE.PRESSED
+			}
+			this.lastKey = key
+			this._lastKeyPressTime = keyPressTime
 		}
 	}
 	public onReleased(key: string) {
@@ -68,9 +84,29 @@ export class Keyboard {
 		}
 		return this._keyExist(key) && this._keys[key] === Keyboard.KEY_STATE.UP
 	}
-	public wasPressed(key: string[]): boolean
-	public wasPressed(key: string): boolean
-	public wasPressed(key: string | string[]) {
+	public wasPressed(key: string[], pressedTwice?: boolean): boolean
+	public wasPressed(key: string, pressedTwice?: boolean): boolean
+	public wasPressed(key: string | string[], pressedTwice?: boolean) {
+		if (pressedTwice) {
+			if (Array.isArray(key)) {
+				let res = false
+				for (const k of key) {
+					if (
+						this._keyExist(k) &&
+						this._keys[k] === Keyboard.KEY_STATE.PRESSED_TWICE
+					) {
+						res = true
+						break
+					}
+				}
+				return res
+			}
+			return (
+				this._keyExist(key) &&
+				this._keys[key] === Keyboard.KEY_STATE.PRESSED_TWICE
+			)
+		}
+
 		if (Array.isArray(key)) {
 			let res = false
 			for (const k of key) {
@@ -108,6 +144,9 @@ export class Keyboard {
 		Object.keys(this._keys).forEach((key) => {
 			switch (this._keys[key]) {
 				case Keyboard.KEY_STATE.PRESSED:
+					this._keys[key] = Keyboard.KEY_STATE.DOWN
+					break
+				case Keyboard.KEY_STATE.PRESSED_TWICE:
 					this._keys[key] = Keyboard.KEY_STATE.DOWN
 					break
 				case Keyboard.KEY_STATE.RELEASED:

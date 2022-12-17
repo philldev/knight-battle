@@ -8,6 +8,8 @@ export class Entity {
 	private _world?: World
 	private _renderer?: Renderer
 
+	public childEntities?: Entity[]
+
 	get world() {
 		if (!this._world) throw new Error('Entity is not initialized')
 		return this._world

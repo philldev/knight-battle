@@ -40,11 +40,34 @@ export class World {
 		for (const e of this._entities) {
 			e.update(timestamp)
 			e.render()
+			this.renderChild(e.childEntities, timestamp)
 		}
+	}
+
+	private renderChild(children: Entity[] | undefined, timestamp: number) {
+		if (children) {
+			for (const child of children) {
+				child.update(timestamp)
+				child.render()
+				this.renderChild(child.childEntities, timestamp)
+			}
+		}
+		return
+	}
+
+	private initChild(children: Entity[] | undefined) {
+		if (children) {
+			for (const child of children) {
+				child.init(this, this._keyboard, this._renderer)
+				this.initChild(child.childEntities)
+			}
+		}
+		return
 	}
 
 	public spawn(e: Entity) {
 		e.init(this, this._keyboard, this._renderer)
+		this.initChild(e.childEntities)
 		this._entities.push(e)
 		return this
 	}
