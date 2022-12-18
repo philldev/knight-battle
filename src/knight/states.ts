@@ -1,120 +1,6 @@
-import knight from './assets/knight.png'
-import { Entity } from './lib/entity'
-import { Size, Vector2 } from './lib/util'
+import { Knight } from './knight'
 
-class StateDisplay extends Entity {
-	constructor(private _knight: Knight) {
-		super(
-			new Vector2(_knight.position.x, 450),
-			new Size(_knight.size.width, 25),
-			'red',
-			_knight.scale
-		)
-
-		this.text = this._knight._state.name
-	}
-
-	text: string
-
-	public update(timestamp: number): void {
-		this.position.set({
-			x: this._knight.position.x,
-			y: this._knight.position.y - 50,
-		})
-		this.text = this._knight.state.name
-	}
-
-	public render(): void {
-		this.renderer.drawText({
-			font: '30px Comic Sans MS',
-			fill: this.fill,
-			position: this.position,
-			text: this.text,
-		})
-	}
-}
-
-export class Knight extends Entity {
-	constructor() {
-		const img = new Image()
-		img.src = knight
-		super(new Vector2(100, 475), new Size(175, 100), 'transparent', 1.8, {
-			image: img,
-			subRect: {
-				position: new Vector2(0, 0),
-				size: new Size(175, 100),
-			},
-		})
-		this.childEntities = [new StateDisplay(this)]
-		this._state.enter()
-	}
-
-	_state: KnightState = new Idle(this)
-	prevStateName: States | null = null
-
-	get state(): KnightState {
-		return this._state
-	}
-
-	set state(state: KnightState) {
-		this.prevStateName = this._state.name
-		this._state = state
-		this._state.enter()
-	}
-
-	frameX = 0
-	maxFrameX = 0
-
-	frameY = 0
-
-	velocityY = 0
-	velocityX = 0
-
-	facing: Facing = 'right'
-
-	groundY = 475
-	gravity = 0.5
-
-	reverseAnimation = false
-
-	readonly animationMaxFrameDefault = 10
-	animationMaxFrame = this.animationMaxFrameDefault
-
-	public update(timestamp: number): void {
-		this._animate(timestamp)
-		this._handleVelocity()
-		this.state.update()
-	}
-
-	private _handleVelocity() {
-		// console.log(this.position.y + this.size.height + this.velocityY)
-		this.velocityY += this.gravity
-		this.position.velocity({
-			x: this.velocityX,
-			y: this.position.y + this.velocityY <= this.groundY ? this.velocityY : 0,
-		})
-	}
-
-	private _animate(timestamp: number) {
-		if (timestamp % this.animationMaxFrame === 0) {
-			this.sprite?.subRect?.position.set({
-				x: this.size.width * this.frameX,
-				y: this.size.height * this.frameY,
-			})
-			if (!this.reverseAnimation) {
-				if (this.frameX < this.maxFrameX) {
-					this.frameX++
-				} else this.frameX = 0
-			} else {
-				if (this.frameX > 0) {
-					this.frameX--
-				} else this.frameX = this.maxFrameX
-			}
-		}
-	}
-}
-
-type States =
+export type KnightStates =
 	| 'IDLE'
 	| 'WALK'
 	| 'JUMP'
@@ -123,15 +9,13 @@ type States =
 	| 'ATTACK2'
 	| 'ATTACK3'
 
-class KnightState {
-	constructor(public name: States) {}
+export class KnightState {
+	constructor(public name: KnightStates) {}
 	enter() {}
 	update() {}
 }
 
-type Facing = 'left' | 'right'
-
-class Idle extends KnightState {
+export class Idle extends KnightState {
 	constructor(public knight: Knight) {
 		super('IDLE')
 	}
@@ -148,33 +32,48 @@ class Idle extends KnightState {
 		this.knight.velocityX = 0
 	}
 
-	update() {
-		if (this.knight.keyboard.wasPressed('a', true)) {
+	private _handleInput() {
+		if (this.knight.keyboard.wasPressed(this.knight.KEY_MAP.LEFT, true)) {
 			if (this.knight.facing === 'right') {
 				this.knight.facing = 'left'
 			} else {
 				this.knight.state = new Running(this.knight)
 			}
-		} else if (this.knight.keyboard.wasPressed('d', true)) {
+		} else if (
+			this.knight.keyboard.wasPressed(this.knight.KEY_MAP.RIGHT, true)
+		) {
 			if (this.knight.facing === 'left') {
 				this.knight.facing = 'right'
 			} else {
 				this.knight.state = new Running(this.knight)
 			}
-		} else if (this.knight.keyboard.isDown('d')) {
-			this.knight.state = new Walk(this.knight, 'd')
-		} else if (this.knight.keyboard.isDown('a')) {
-			this.knight.state = new Walk(this.knight, 'a')
-		} else if (this.knight.keyboard.wasPressed('w')) {
+		} else if (this.knight.keyboard.isDown(this.knight.KEY_MAP.RIGHT)) {
+			this.knight.state = new Walk(this.knight, 'right')
+		} else if (this.knight.keyboard.isDown(this.knight.KEY_MAP.LEFT)) {
+			this.knight.state = new Walk(this.knight, 'left')
+		} else if (this.knight.keyboard.isDown(this.knight.KEY_MAP.JUMP)) {
 			this.knight.state = new Jump(this.knight)
-		} else if (this.knight.keyboard.wasPressed(' ')) {
+		} else if (this.knight.keyboard.isDown(this.knight.KEY_MAP.ATTACK)) {
 			this.knight.state = new Attack1(this.knight)
+		}
+	}
+
+	update() {
+		if (
+			this.knight.prevStateName === 'ATTACK3' ||
+			this.knight.prevStateName === 'ATTACK2'
+		) {
+			if (this.knight.frameX === 2) {
+				this._handleInput()
+			}
+		} else {
+			this._handleInput()
 		}
 	}
 }
 
-class Walk extends KnightState {
-	constructor(public knight: Knight, public key: 'a' | 'd') {
+export class Walk extends KnightState {
+	constructor(public knight: Knight, public key: 'left' | 'right') {
 		super('WALK')
 	}
 
@@ -185,23 +84,23 @@ class Walk extends KnightState {
 
 	readonly velocityX = {
 		left: {
-			a: -1,
-			d: 0.5,
+			left: -1,
+			right: 0.5,
 		},
 		right: {
-			a: -0.5,
-			d: 1,
+			left: -0.5,
+			right: 1,
 		},
 	}
 
 	readonly reverseAnimation = {
 		left: {
-			a: false,
-			d: true,
+			left: false,
+			right: true,
 		},
 		right: {
-			a: true,
-			d: false,
+			left: true,
+			right: false,
 		},
 	}
 
@@ -215,19 +114,25 @@ class Walk extends KnightState {
 	}
 
 	update() {
-		if (this.knight.keyboard.wasReleased(['a', 'd'])) {
+		if (
+			this.knight.keyboard.wasReleased([
+				this.knight.KEY_MAP.LEFT,
+				this.knight.KEY_MAP.RIGHT,
+			])
+		) {
 			this.knight.state = new Idle(this.knight)
 		}
-		if (this.knight.keyboard.isDown('w')) {
+		if (this.knight.keyboard.isDown(this.knight.KEY_MAP.JUMP)) {
 			this.knight.state = new Jump(this.knight)
 		}
-		if (this.knight.keyboard.wasPressed(' ')) {
+
+		if (this.knight.keyboard.isDown(this.knight.KEY_MAP.ATTACK)) {
 			this.knight.state = new Attack1(this.knight)
 		}
 	}
 }
 
-class Running extends KnightState {
+export class Running extends KnightState {
 	constructor(public knight: Knight) {
 		super('RUNNING')
 	}
@@ -250,19 +155,24 @@ class Running extends KnightState {
 	}
 
 	update() {
-		if (this.knight.keyboard.wasReleased(['a', 'd'])) {
+		if (
+			this.knight.keyboard.wasReleased([
+				this.knight.KEY_MAP.LEFT,
+				this.knight.KEY_MAP.RIGHT,
+			])
+		) {
 			this.knight.state = new Idle(this.knight)
 		}
-		if (this.knight.keyboard.isDown('w')) {
+		if (this.knight.keyboard.isDown(this.knight.KEY_MAP.JUMP)) {
 			this.knight.state = new Jump(this.knight)
 		}
-		if (this.knight.keyboard.wasPressed(' ')) {
-			this.knight.state = new Attack3(this.knight)
+		if (this.knight.keyboard.wasPressed(this.knight.KEY_MAP.ATTACK)) {
+			this.knight.state = new RunningAttack(this.knight)
 		}
 	}
 }
 
-class Jump extends KnightState {
+export class Jump extends KnightState {
 	constructor(public knight: Knight) {
 		super('JUMP')
 	}
@@ -277,6 +187,11 @@ class Jump extends KnightState {
 		right: 1,
 	}
 
+	readonly velocityXFromWalking = {
+		left: -0.7,
+		right: 0.7,
+	}
+
 	maxFrameX = 6
 
 	enter() {
@@ -286,6 +201,8 @@ class Jump extends KnightState {
 		this.knight.velocityX =
 			this.knight.prevStateName === 'RUNNING'
 				? this.velocityXFromRunning[this.knight.facing]
+				: this.knight.prevStateName === 'WALK'
+				? this.velocityXFromWalking[this.knight.facing]
 				: 0
 		this.knight.velocityY = -10
 		this.knight.reverseAnimation = false
@@ -298,7 +215,7 @@ class Jump extends KnightState {
 	}
 }
 
-class Attack1 extends KnightState {
+export class Attack1 extends KnightState {
 	constructor(public knight: Knight) {
 		super('ATTACK1')
 	}
@@ -319,16 +236,21 @@ class Attack1 extends KnightState {
 	}
 
 	update() {
-		if (this.knight.frameX > 1 && this.knight.keyboard.wasPressed(' ')) {
-			this.knight.state = new Attack2(this.knight)
+		if (this.knight.frameX === 4) {
+			this.knight.attackBox.hitting = true
 		} else if (this.maxFrameX === this.knight.frameX) {
-			this.knight.state = new Idle(this.knight)
-			this.knight.animationMaxFrame = this.knight.animationMaxFrameDefault
+			this.knight.attackBox.hitting = false
+			if (this.knight.keyboard.isDown(this.knight.KEY_MAP.ATTACK)) {
+				this.knight.state = new Attack2(this.knight)
+			} else {
+				this.knight.state = new Idle(this.knight)
+				this.knight.animationMaxFrame = this.knight.animationMaxFrameDefault
+			}
 		}
 	}
 }
 
-class Attack2 extends KnightState {
+export class Attack2 extends KnightState {
 	constructor(public knight: Knight) {
 		super('ATTACK2')
 	}
@@ -349,14 +271,17 @@ class Attack2 extends KnightState {
 	}
 
 	update() {
-		if (this.maxFrameX === this.knight.frameX) {
+		if (this.knight.frameX === 2) {
+			this.knight.attackBox.hitting = true
+		} else if (this.maxFrameX === this.knight.frameX) {
 			this.knight.state = new Idle(this.knight)
+			this.knight.attackBox.hitting = false
 			this.knight.animationMaxFrame = this.knight.animationMaxFrameDefault
 		}
 	}
 }
 
-class Attack3 extends KnightState {
+export class RunningAttack extends KnightState {
 	constructor(public knight: Knight) {
 		super('ATTACK3')
 	}
@@ -379,10 +304,16 @@ class Attack3 extends KnightState {
 		this.knight.frameY = this.frameY[this.knight.facing]
 		this.knight.velocityX = this.velocityX[this.knight.facing]
 		this.knight.reverseAnimation = false
+		this.knight.attackBox.position.x = this.knight.attackBox.position.x - 100
+		this.knight.attackBox.position.y = this.knight.attackBox.position.x + 50
 	}
 
 	update() {
+		if (this.knight.frameX === 4) {
+			this.knight.attackBox.hitting = true
+		}
 		if (this.maxFrameX === this.knight.frameX) {
+			this.knight.attackBox.hitting = false
 			this.knight.state = new Idle(this.knight)
 			this.knight.animationMaxFrame = this.knight.animationMaxFrameDefault
 		}

@@ -7,20 +7,20 @@ export class Keyboard {
 		UP: 'UP',
 	} as const
 
-	static KEYS = {
-		a: 'a',
-		s: 's',
-		d: 'd',
-		w: 'w',
-		' ': ' ',
-	} as const
+	// static KEYS = {
+	// 	a: 'a',
+	// 	s: 's',
+	// 	d: 'd',
+	// 	w: 'w',
+	// 	' ': ' ',
+	// } as const
 
 	private _keys: Record<string, keyof typeof Keyboard.KEY_STATE> = {}
 
-	public lastKey?: string = undefined
+	public pressOnce: Record<string, boolean> = {}
 
-	constructor() {
-		for (const key in Keyboard.KEYS) {
+	constructor(keys: Record<string, string>) {
+		for (const key in keys) {
 			this._keys[key] = Keyboard.KEY_STATE.UP
 		}
 	}
@@ -33,17 +33,23 @@ export class Keyboard {
 	private _lastKeyPressTime = 0
 
 	public onPressed(key: string) {
+		console.log(this.pressOnce)
+
 		if (this._keyExist(key) && this._keys[key] === Keyboard.KEY_STATE.UP) {
 			let keyPressTime = new Date().getTime()
-			if (keyPressTime - this._lastKeyPressTime <= this._delta) {
-				console.log('pressed twice')
-
+			if (
+				keyPressTime - this._lastKeyPressTime <= this._delta &&
+				this.pressOnce[key]
+			) {
 				this._keys[key] = Keyboard.KEY_STATE.PRESSED_TWICE
 				keyPressTime = 0
 			} else {
 				this._keys[key] = Keyboard.KEY_STATE.PRESSED
+				this.pressOnce[key] = true
+				setTimeout(() => {
+					this.pressOnce[key] = false
+				}, 250)
 			}
-			this.lastKey = key
 			this._lastKeyPressTime = keyPressTime
 		}
 	}
