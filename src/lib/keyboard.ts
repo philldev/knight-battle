@@ -33,8 +33,6 @@ export class Keyboard {
 	private _lastKeyPressTime = 0
 
 	public onPressed(key: string) {
-		console.log(this.pressOnce)
-
 		if (this._keyExist(key) && this._keys[key] === Keyboard.KEY_STATE.UP) {
 			let keyPressTime = new Date().getTime()
 			if (

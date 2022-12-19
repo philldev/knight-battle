@@ -47,15 +47,35 @@ export class Size {
 	}
 }
 
-export class Position {
+export class RectPosition {
 	public top: number
 	public left: number
 	public right: number
 	public bottom: number
+
 	constructor(vector2: Vector2, size: Size, scale: number | undefined = 1) {
 		this.left = vector2.x
 		this.top = vector2.y
 		this.right = vector2.x + size.width * scale
 		this.bottom = vector2.y + size.height * scale
+	}
+
+	update(vector2: Vector2, size: Size, scale: number | undefined = 1) {
+		this.left = vector2.x
+		this.top = vector2.y
+		this.right = vector2.x + size.width * scale
+		this.bottom = vector2.y + size.height * scale
+	}
+
+	isColliding(target: RectPosition) {
+		if (
+			((this.left >= target.left && this.left <= target.right) ||
+				(target.right >= this.left && target.left <= this.right)) &&
+			((this.bottom >= target.top && this.top <= target.bottom) ||
+				(target.bottom >= this.top && target.top <= this.bottom))
+		) {
+			return true
+		}
+		return false
 	}
 }

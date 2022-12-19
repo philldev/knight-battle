@@ -39,6 +39,7 @@ export class World {
 
 		for (const e of this._entities) {
 			e.update(timestamp)
+			e.updateRectPosition()
 			e.render()
 			this.renderChild(e.childEntities, timestamp)
 		}
@@ -48,6 +49,7 @@ export class World {
 		if (children) {
 			for (const child of children) {
 				child.update(timestamp)
+				child.updateRectPosition()
 				child.render()
 				this.renderChild(child.childEntities, timestamp)
 			}

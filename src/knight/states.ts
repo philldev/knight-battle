@@ -8,6 +8,7 @@ export type KnightStates =
 	| 'ATTACK1'
 	| 'ATTACK2'
 	| 'ATTACK3'
+	| 'HURT'
 
 export class KnightState {
 	constructor(public name: KnightStates) {}
@@ -33,28 +34,32 @@ export class Idle extends KnightState {
 	}
 
 	private _handleInput() {
-		if (this.knight.keyboard.wasPressed(this.knight.KEY_MAP.LEFT, true)) {
-			if (this.knight.facing === 'right') {
-				this.knight.facing = 'left'
-			} else {
-				this.knight.state = new Running(this.knight)
+		if (this.knight.hitBox.gotHit) {
+			this.knight.state = new Hurt(this.knight)
+		} else {
+			if (this.knight.keyboard.wasPressed(this.knight.KEY_MAP.LEFT, true)) {
+				if (this.knight.facing === 'right') {
+					this.knight.facing = 'left'
+				} else {
+					this.knight.state = new Running(this.knight)
+				}
+			} else if (
+				this.knight.keyboard.wasPressed(this.knight.KEY_MAP.RIGHT, true)
+			) {
+				if (this.knight.facing === 'left') {
+					this.knight.facing = 'right'
+				} else {
+					this.knight.state = new Running(this.knight)
+				}
+			} else if (this.knight.keyboard.isDown(this.knight.KEY_MAP.RIGHT)) {
+				this.knight.state = new Walk(this.knight, 'right')
+			} else if (this.knight.keyboard.isDown(this.knight.KEY_MAP.LEFT)) {
+				this.knight.state = new Walk(this.knight, 'left')
+			} else if (this.knight.keyboard.isDown(this.knight.KEY_MAP.JUMP)) {
+				this.knight.state = new Jump(this.knight)
+			} else if (this.knight.keyboard.isDown(this.knight.KEY_MAP.ATTACK)) {
+				this.knight.state = new Attack1(this.knight)
 			}
-		} else if (
-			this.knight.keyboard.wasPressed(this.knight.KEY_MAP.RIGHT, true)
-		) {
-			if (this.knight.facing === 'left') {
-				this.knight.facing = 'right'
-			} else {
-				this.knight.state = new Running(this.knight)
-			}
-		} else if (this.knight.keyboard.isDown(this.knight.KEY_MAP.RIGHT)) {
-			this.knight.state = new Walk(this.knight, 'right')
-		} else if (this.knight.keyboard.isDown(this.knight.KEY_MAP.LEFT)) {
-			this.knight.state = new Walk(this.knight, 'left')
-		} else if (this.knight.keyboard.isDown(this.knight.KEY_MAP.JUMP)) {
-			this.knight.state = new Jump(this.knight)
-		} else if (this.knight.keyboard.isDown(this.knight.KEY_MAP.ATTACK)) {
-			this.knight.state = new Attack1(this.knight)
 		}
 	}
 
@@ -237,9 +242,8 @@ export class Attack1 extends KnightState {
 
 	update() {
 		if (this.knight.frameX === 4) {
-			this.knight.attackBox.hitting = true
+			this.knight.attackBox.tryHitTarget()
 		} else if (this.maxFrameX === this.knight.frameX) {
-			this.knight.attackBox.hitting = false
 			if (this.knight.keyboard.isDown(this.knight.KEY_MAP.ATTACK)) {
 				this.knight.state = new Attack2(this.knight)
 			} else {
@@ -272,10 +276,9 @@ export class Attack2 extends KnightState {
 
 	update() {
 		if (this.knight.frameX === 2) {
-			this.knight.attackBox.hitting = true
+			this.knight.attackBox.tryHitTarget()
 		} else if (this.maxFrameX === this.knight.frameX) {
 			this.knight.state = new Idle(this.knight)
-			this.knight.attackBox.hitting = false
 			this.knight.animationMaxFrame = this.knight.animationMaxFrameDefault
 		}
 	}
@@ -304,16 +307,46 @@ export class RunningAttack extends KnightState {
 		this.knight.frameY = this.frameY[this.knight.facing]
 		this.knight.velocityX = this.velocityX[this.knight.facing]
 		this.knight.reverseAnimation = false
-		this.knight.attackBox.position.x = this.knight.attackBox.position.x - 100
-		this.knight.attackBox.position.y = this.knight.attackBox.position.x + 50
 	}
 
 	update() {
 		if (this.knight.frameX === 4) {
-			this.knight.attackBox.hitting = true
+			this.knight.attackBox.tryHitTarget()
 		}
 		if (this.maxFrameX === this.knight.frameX) {
-			this.knight.attackBox.hitting = false
+			this.knight.state = new Idle(this.knight)
+			this.knight.animationMaxFrame = this.knight.animationMaxFrameDefault
+		}
+	}
+}
+
+export class Hurt extends KnightState {
+	constructor(public knight: Knight) {
+		super('HURT')
+	}
+
+	readonly frameY = {
+		left: 13,
+		right: 12,
+	}
+
+	readonly velocityX = {
+		left: 0,
+		right: 0,
+	}
+
+	maxFrameX = 2
+
+	enter(): void {
+		this.knight.frameX = 0
+		this.knight.maxFrameX = this.maxFrameX
+		this.knight.frameY = this.frameY[this.knight.facing]
+		this.knight.velocityX = this.velocityX[this.knight.facing]
+		this.knight.reverseAnimation = false
+	}
+
+	update() {
+		if (this.maxFrameX === this.knight.frameX) {
 			this.knight.state = new Idle(this.knight)
 			this.knight.animationMaxFrame = this.knight.animationMaxFrameDefault
 		}

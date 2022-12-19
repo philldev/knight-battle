@@ -24,17 +24,17 @@ export class Knight extends Entity {
 			},
 		})
 		this.facing = facing
-		this.childEntities = [this.stateDisplay, this.attackBox, this.hitBox]
+		this.childEntities = [this.attackBox, this.hitBox]
 		this._state.enter()
 	}
 
+	readonly animationMaxFrameDefault = 8
+
 	_state: KnightState = new Idle(this)
 	prevStateName: KnightStates | null = null
-
-	stateDisplay = new StateDisplay(this)
+	// stateDisplay = new StateDisplay(this)
 	attackBox = new AttackBox(this)
 	hitBox = new HitBox(this)
-
 	frameX = 0
 	maxFrameX = 0
 	frameY = 0
@@ -43,11 +43,9 @@ export class Knight extends Entity {
 	facing: Facing = 'right'
 	groundY = 475
 	gravity = 0.5
-
 	reverseAnimation = false
-
-	readonly animationMaxFrameDefault = 8
 	animationMaxFrame = this.animationMaxFrameDefault
+	target?: Knight
 
 	public update(timestamp: number): void {
 		this._animate(timestamp)
@@ -57,10 +55,14 @@ export class Knight extends Entity {
 
 	private _handleVelocity() {
 		this.velocityY += this.gravity
-		this.position.velocity({
+		this.vector.velocity({
 			x: this.velocityX,
-			y: this.position.y + this.velocityY <= this.groundY ? this.velocityY : 0,
+			y: this.vector.y + this.velocityY <= this.groundY ? this.velocityY : 0,
 		})
+	}
+
+	public addTarget(target: Knight) {
+		if (target !== this) this.target = target
 	}
 
 	private _animate(timestamp: number) {
@@ -95,7 +97,7 @@ export class Knight extends Entity {
 class StateDisplay extends Entity {
 	constructor(private _knight: Knight) {
 		super(
-			new Vector2(_knight.position.x, 450),
+			new Vector2(_knight.vector.x, 450),
 			new Size(_knight.size.width, 25),
 			'red',
 			_knight.scale
@@ -107,9 +109,9 @@ class StateDisplay extends Entity {
 	text: string
 
 	public update(): void {
-		this.position.set({
-			x: this._knight.position.x,
-			y: this._knight.position.y - 50,
+		this.vector.set({
+			x: this._knight.vector.x,
+			y: this._knight.vector.y - 50,
 		})
 		this.text = this._knight.state.name
 	}
@@ -118,7 +120,7 @@ class StateDisplay extends Entity {
 		this.renderer.drawText({
 			font: '30px Comic Sans MS',
 			fill: this.fill,
-			position: this.position,
+			position: this.vector,
 			text: this.text,
 		})
 	}
@@ -127,7 +129,7 @@ class StateDisplay extends Entity {
 class AttackBox extends Entity {
 	hitting = false
 	constructor(private _knight: Knight) {
-		super(_knight.position.copy(), new Size(27, 63), 'red', _knight.scale)
+		super(_knight.vector.copy(), new Size(27, 63), 'transparent', _knight.scale)
 	}
 
 	offsetPosition: Record<
@@ -144,6 +146,7 @@ class AttackBox extends Entity {
 		JUMP: { x: 50, y: 15 },
 		RUNNING: { x: 50, y: 15 },
 		WALK: { x: 50, y: 15 },
+		HURT: { x: 50, y: 15 },
 	}
 
 	getOffset(axis: 'x' | 'y') {
@@ -151,34 +154,52 @@ class AttackBox extends Entity {
 	}
 
 	public update(): void {
-		if (this.hitting) this.fill = 'green'
-		else this.fill = 'red'
-		this.position.set({
+		if (this.hitting) {
+			this.hitting = false
+		}
+
+		this.vector.set({
 			x:
 				this._knight.facing === 'left'
-					? this._knight.position.x +
+					? this._knight.vector.x +
 					  this.getOffset('x') -
 					  this.size.width * this.scale
-					: this._knight.position.x +
+					: this._knight.vector.x +
 					  this._knight.size.width * this._knight.scale -
 					  this.getOffset('x'),
-			y: this._knight.position.y + this.getOffset('y'),
+			y: this._knight.vector.y + this.getOffset('y'),
 		})
+	}
+
+	tryHitTarget() {
+		this._knight.attackBox.hitting = true
+		const target = this._knight.target
+		if (
+			target &&
+			target.hitBox.position.isColliding(this._knight.attackBox.position)
+		) {
+			target.hitBox.gotHit = true
+		}
 	}
 }
 
 class HitBox extends Entity {
+	gotHit = false
+
 	constructor(private _knight: Knight) {
-		super(_knight.position.copy(), new Size(30, 64), 'blue', _knight.scale)
+		super(_knight.vector.copy(), new Size(30, 64), 'transparent', _knight.scale)
 	}
 
 	public update(): void {
-		this.position.set({
+		if (this.gotHit) {
+			this.gotHit = false
+		}
+		this.vector.set({
 			x:
 				this._knight.facing === 'left'
-					? this._knight.position.x + 132
-					: this._knight.position.x + 128,
-			y: this._knight.position.y + 40,
+					? this._knight.vector.x + 132
+					: this._knight.vector.x + 128,
+			y: this._knight.vector.y + 40,
 		})
 	}
 }
