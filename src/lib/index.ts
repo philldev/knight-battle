@@ -13,6 +13,7 @@ export class Game {
 		this.start()
 
 		window.addEventListener('keydown', (e) => {
+			e.preventDefault()
 			this._keyboard.onPressed(e.key)
 		})
 		window.addEventListener('keyup', (e) => {

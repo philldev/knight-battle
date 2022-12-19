@@ -1,11 +1,8 @@
 import { Background } from './background'
-import { EventEntity } from './event'
 import { Knight } from './knight/knight'
 import { Game } from './lib'
-import { Entity } from './lib/entity'
 import { Keyboard } from './lib/keyboard'
 import { Canvas, Renderer } from './lib/renderer'
-import { RectPosition, Size, Vector2 } from './lib/util'
 import { World } from './lib/world'
 import './style.css'
 
@@ -22,6 +19,8 @@ const KEYS = {
 	ArrowUp: 'ArrowUp',
 	ArrowLeft: 'ArrowLeft',
 	ArrowRight: 'ArrowRight',
+	f: 'f',
+	Control: 'Control',
 }
 
 const KEY_MAP = {
@@ -30,12 +29,14 @@ const KEY_MAP = {
 		JUMP: KEYS.w,
 		LEFT: KEYS.a,
 		RIGHT: KEYS.d,
+		DEFEND: KEYS.f,
 	},
 	2: {
 		ATTACK: KEYS.Enter,
 		JUMP: KEYS.ArrowUp,
 		LEFT: KEYS.ArrowLeft,
 		RIGHT: KEYS.ArrowRight,
+		DEFEND: KEYS.Control,
 	},
 }
 

@@ -9,6 +9,7 @@ export type KnightStates =
 	| 'ATTACK2'
 	| 'ATTACK3'
 	| 'HURT'
+	| 'DEFEND'
 
 export class KnightState {
 	constructor(public name: KnightStates) {}
@@ -27,9 +28,9 @@ export class Idle extends KnightState {
 	}
 
 	enter() {
-		this.knight.frameX = 0
-		this.knight.frameY = this.frameY[this.knight.facing]
-		this.knight.maxFrameX = 3
+		this.knight.spriteFrameX = 0
+		this.knight.spriteFrameY = this.frameY[this.knight.facing]
+		this.knight.spriteMaxFrameX = 3
 		this.knight.velocityX = 0
 	}
 
@@ -37,6 +38,9 @@ export class Idle extends KnightState {
 		if (this.knight.hitBox.gotHit) {
 			this.knight.state = new Hurt(this.knight)
 		} else {
+			if (this.knight.keyboard.isDown(this.knight.KEY_MAP.DEFEND)) {
+				this.knight.state = new Defend(this.knight)
+			}
 			if (this.knight.keyboard.wasPressed(this.knight.KEY_MAP.LEFT, true)) {
 				if (this.knight.facing === 'right') {
 					this.knight.facing = 'left'
@@ -68,7 +72,7 @@ export class Idle extends KnightState {
 			this.knight.prevStateName === 'ATTACK3' ||
 			this.knight.prevStateName === 'ATTACK2'
 		) {
-			if (this.knight.frameX === 2) {
+			if (this.knight.spriteFrameX === 2) {
 				this._handleInput()
 			}
 		} else {
@@ -110,11 +114,11 @@ export class Walk extends KnightState {
 	}
 
 	enter() {
-		this.knight.frameX = 7
-		this.knight.maxFrameX = 7
-		this.knight.frameY = this.frameY[this.knight.facing]
+		this.knight.spriteFrameX = 7
+		this.knight.spriteMaxFrameX = 7
+		this.knight.spriteFrameY = this.frameY[this.knight.facing]
 		this.knight.velocityX = this.velocityX[this.knight.facing][this.key]
-		this.knight.reverseAnimation =
+		this.knight.isReverseSprite =
 			this.reverseAnimation[this.knight.facing][this.key]
 	}
 
@@ -153,9 +157,9 @@ export class Running extends KnightState {
 	}
 
 	enter() {
-		this.knight.frameX = 0
-		this.knight.maxFrameX = 6
-		this.knight.frameY = this.frameY[this.knight.facing]
+		this.knight.spriteFrameX = 0
+		this.knight.spriteMaxFrameX = 6
+		this.knight.spriteFrameY = this.frameY[this.knight.facing]
 		this.knight.velocityX = this.velocityX[this.knight.facing]
 	}
 
@@ -200,9 +204,9 @@ export class Jump extends KnightState {
 	maxFrameX = 6
 
 	enter() {
-		this.knight.frameX = 0
-		this.knight.maxFrameX = this.maxFrameX
-		this.knight.frameY = this.frameY[this.knight.facing]
+		this.knight.spriteFrameX = 0
+		this.knight.spriteMaxFrameX = this.maxFrameX
+		this.knight.spriteFrameY = this.frameY[this.knight.facing]
 		this.knight.velocityX =
 			this.knight.prevStateName === 'RUNNING'
 				? this.velocityXFromRunning[this.knight.facing]
@@ -210,11 +214,11 @@ export class Jump extends KnightState {
 				? this.velocityXFromWalking[this.knight.facing]
 				: 0
 		this.knight.velocityY = -10
-		this.knight.reverseAnimation = false
+		this.knight.isReverseSprite = false
 	}
 
 	update() {
-		if (this.maxFrameX === this.knight.frameX) {
+		if (this.maxFrameX === this.knight.spriteFrameX) {
 			this.knight.state = new Idle(this.knight)
 		}
 	}
@@ -233,22 +237,22 @@ export class Attack1 extends KnightState {
 	maxFrameX = 5
 
 	enter() {
-		this.knight.frameX = 0
-		this.knight.maxFrameX = this.maxFrameX
-		this.knight.frameY = this.frameY[this.knight.facing]
+		this.knight.spriteFrameX = 0
+		this.knight.spriteMaxFrameX = this.maxFrameX
+		this.knight.spriteFrameY = this.frameY[this.knight.facing]
 		this.knight.velocityX = 0
-		this.knight.reverseAnimation = false
+		this.knight.isReverseSprite = false
 	}
 
 	update() {
-		if (this.knight.frameX === 4) {
+		if (this.knight.spriteFrameX === 4) {
 			this.knight.attackBox.tryHitTarget()
-		} else if (this.maxFrameX === this.knight.frameX) {
+		} else if (this.maxFrameX === this.knight.spriteFrameX) {
 			if (this.knight.keyboard.isDown(this.knight.KEY_MAP.ATTACK)) {
 				this.knight.state = new Attack2(this.knight)
 			} else {
 				this.knight.state = new Idle(this.knight)
-				this.knight.animationMaxFrame = this.knight.animationMaxFrameDefault
+				this.knight.spriteMaxFrame = this.knight.spriteMaxFrameDefault
 			}
 		}
 	}
@@ -267,19 +271,19 @@ export class Attack2 extends KnightState {
 	maxFrameX = 4
 
 	enter() {
-		this.knight.frameX = 0
-		this.knight.maxFrameX = this.maxFrameX
-		this.knight.frameY = this.frameY[this.knight.facing]
+		this.knight.spriteFrameX = 0
+		this.knight.spriteMaxFrameX = this.maxFrameX
+		this.knight.spriteFrameY = this.frameY[this.knight.facing]
 		this.knight.velocityX = 0
-		this.knight.reverseAnimation = false
+		this.knight.isReverseSprite = false
 	}
 
 	update() {
-		if (this.knight.frameX === 2) {
+		if (this.knight.spriteFrameX === 2) {
 			this.knight.attackBox.tryHitTarget()
-		} else if (this.maxFrameX === this.knight.frameX) {
+		} else if (this.maxFrameX === this.knight.spriteFrameX) {
 			this.knight.state = new Idle(this.knight)
-			this.knight.animationMaxFrame = this.knight.animationMaxFrameDefault
+			this.knight.spriteMaxFrame = this.knight.spriteMaxFrameDefault
 		}
 	}
 }
@@ -302,20 +306,20 @@ export class RunningAttack extends KnightState {
 	maxFrameX = 5
 
 	enter() {
-		this.knight.frameX = 0
-		this.knight.maxFrameX = this.maxFrameX
-		this.knight.frameY = this.frameY[this.knight.facing]
+		this.knight.spriteFrameX = 0
+		this.knight.spriteMaxFrameX = this.maxFrameX
+		this.knight.spriteFrameY = this.frameY[this.knight.facing]
 		this.knight.velocityX = this.velocityX[this.knight.facing]
-		this.knight.reverseAnimation = false
+		this.knight.isReverseSprite = false
 	}
 
 	update() {
-		if (this.knight.frameX === 4) {
+		if (this.knight.spriteFrameX === 4) {
 			this.knight.attackBox.tryHitTarget()
 		}
-		if (this.maxFrameX === this.knight.frameX) {
+		if (this.maxFrameX === this.knight.spriteFrameX) {
 			this.knight.state = new Idle(this.knight)
-			this.knight.animationMaxFrame = this.knight.animationMaxFrameDefault
+			this.knight.spriteMaxFrame = this.knight.spriteMaxFrameDefault
 		}
 	}
 }
@@ -338,17 +342,50 @@ export class Hurt extends KnightState {
 	maxFrameX = 2
 
 	enter(): void {
-		this.knight.frameX = 0
-		this.knight.maxFrameX = this.maxFrameX
-		this.knight.frameY = this.frameY[this.knight.facing]
+		this.knight.spriteFrameX = 0
+		this.knight.spriteMaxFrameX = this.maxFrameX
+		this.knight.spriteFrameY = this.frameY[this.knight.facing]
 		this.knight.velocityX = this.velocityX[this.knight.facing]
-		this.knight.reverseAnimation = false
+		this.knight.isReverseSprite = false
 	}
 
 	update() {
-		if (this.maxFrameX === this.knight.frameX) {
+		if (this.maxFrameX === this.knight.spriteFrameX) {
 			this.knight.state = new Idle(this.knight)
-			this.knight.animationMaxFrame = this.knight.animationMaxFrameDefault
+			this.knight.spriteMaxFrame = this.knight.spriteMaxFrameDefault
+		}
+	}
+}
+
+export class Defend extends KnightState {
+	constructor(public knight: Knight) {
+		super('DEFEND')
+	}
+
+	readonly frameY = {
+		left: 11,
+		right: 10,
+	}
+
+	readonly velocityX = {
+		left: 0,
+		right: 0,
+	}
+
+	maxFrameX = 4
+
+	enter(): void {
+		this.knight.spriteFrameX = 0
+		this.knight.spriteMaxFrameX = this.maxFrameX
+		this.knight.spriteFrameY = this.frameY[this.knight.facing]
+		this.knight.velocityX = this.velocityX[this.knight.facing]
+		this.knight.isReverseSprite = false
+	}
+
+	update() {
+		if (this.knight.keyboard.wasReleased(this.knight.KEY_MAP.DEFEND)) {
+			this.knight.state = new Idle(this.knight)
+			this.knight.spriteMaxFrame = this.knight.spriteMaxFrameDefault
 		}
 	}
 }
