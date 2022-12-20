@@ -4,12 +4,8 @@ import { Knight } from './knight'
 import { KnightStates } from './states'
 
 export class AttackBox extends Entity {
-	hitting = false
-	constructor(private _knight: Knight) {
-		super(_knight.vector.copy(), new Size(27, 63), 'transparent', _knight.scale)
-	}
-
-	offsetPosition: Record<
+	public hitting = false
+	private _offsetPosition: Record<
 		KnightStates,
 		{
 			x: number
@@ -27,11 +23,26 @@ export class AttackBox extends Entity {
 		DEFEND: { x: 50, y: 15 },
 	}
 
-	getOffset(axis: 'x' | 'y') {
-		return this.offsetPosition[this._knight.state.name][axis]
+	constructor(private _knight: Knight) {
+		super(_knight.vector.copy(), new Size(27, 63), 'transparent', _knight.scale)
 	}
 
-	public update(): void {
+	public getOffset(axis: 'x' | 'y') {
+		return this._offsetPosition[this._knight.state.name][axis]
+	}
+
+	public tryHitTarget() {
+		this._knight.attackBox.hitting = true
+		const target = this._knight.target
+		if (
+			target &&
+			target.hitBox.position.isColliding(this._knight.attackBox.position)
+		) {
+			target.hitBox.gotHit = true
+		}
+	}
+
+	public override update(): void {
 		if (this.hitting) {
 			this.hitting = false
 		}
@@ -47,16 +58,5 @@ export class AttackBox extends Entity {
 					  this.getOffset('x'),
 			y: this._knight.vector.y + this.getOffset('y'),
 		})
-	}
-
-	tryHitTarget() {
-		this._knight.attackBox.hitting = true
-		const target = this._knight.target
-		if (
-			target &&
-			target.hitBox.position.isColliding(this._knight.attackBox.position)
-		) {
-			target.hitBox.gotHit = true
-		}
 	}
 }

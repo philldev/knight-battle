@@ -3,7 +3,7 @@ import { Size } from '../lib/util'
 import { Knight } from './knight'
 
 export class HitBox extends Entity {
-	gotHit = false
+	public gotHit = false
 
 	constructor(private _knight: Knight) {
 		super(_knight.vector.copy(), new Size(30, 64), 'transparent', _knight.scale)

@@ -1,8 +1,10 @@
 import { Background } from './background'
 import { Knight } from './knight/knight'
 import { Game } from './lib'
+import { Entity } from './lib/entity'
 import { Keyboard } from './lib/keyboard'
 import { Canvas, Renderer } from './lib/renderer'
+import { Size, Vector2 } from './lib/util'
 import { World } from './lib/world'
 import './style.css'
 
@@ -44,8 +46,20 @@ const renderer = new Renderer(canvas)
 const keyboard = new Keyboard(KEYS)
 
 const bg = new Background(canvas)
-const knight = new Knight(100, 'right', KEY_MAP[1])
-const knight2 = new Knight(500, 'left', KEY_MAP[2])
+const bounds = new Entity(
+	new Vector2(0, 0),
+	new Size(canvas.width, canvas.height),
+	'transparent',
+	1
+)
+const ground = new Entity(
+	new Vector2(0, canvas.height - 90),
+	new Size(canvas.width, 90),
+	'transparent',
+	1
+)
+const knight = new Knight('left', KEY_MAP[1], bounds, ground)
+const knight2 = new Knight('right', KEY_MAP[2], bounds, ground)
 
 knight.addTarget(knight2)
 
@@ -54,8 +68,11 @@ const world = new World({
 	renderer,
 })
 	.spawn(bg)
+	.spawn(bounds)
+	.spawn(ground)
 	.spawn(knight)
 	.spawn(knight2)
+	// .spawn(new Entity(new Vector2(0, 0), new Size(100, 100), 'red', 1))
 	.onStart(() => {
 		console.log('world start')
 	})

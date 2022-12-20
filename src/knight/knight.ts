@@ -15,8 +15,13 @@ interface KeyMap {
 
 export type Facing = 'left' | 'right'
 
+const SPRITE_WIDTH = 175 as const
+const SPRITE_HEIGHT = 100 as const
+const SPRITE_SCALE = 1.5
+const SPRITE_BOTTOM_OFFSET = 10
+
 export class Knight extends Entity {
-	readonly groundY = 475
+	public groundY = 100
 
 	private _state: KnightState = new Idle(this)
 	public prevStateName: KnightStates | null = null
@@ -37,17 +42,38 @@ export class Knight extends Entity {
 	public velocityX = 0
 	readonly velocityYGravity = 0.5
 
-	constructor(x: number, facing: Facing, readonly KEY_MAP: KeyMap) {
+	constructor(
+		startingPos: 'left' | 'right',
+		readonly KEY_MAP: KeyMap,
+		public readonly bounds: Entity,
+		public readonly ground: Entity
+	) {
 		const img = new Image()
 		img.src = knight
-		super(new Vector2(x, 475), new Size(175, 100), 'transparent', 1.8, {
-			image: img,
-			subRect: {
-				position: new Vector2(0, 0),
-				size: new Size(175, 100),
-			},
-		})
-		this.facing = facing
+		super(
+			new Vector2(
+				startingPos === 'left'
+					? ground.size.width / 2 - SPRITE_WIDTH - 100
+					: ground.size.width / 2,
+				ground.position.top -
+					SPRITE_HEIGHT * SPRITE_SCALE +
+					SPRITE_BOTTOM_OFFSET
+			),
+			new Size(SPRITE_WIDTH, SPRITE_HEIGHT),
+			'transparent',
+			SPRITE_SCALE,
+			{
+				image: img,
+				subRect: {
+					position: new Vector2(0, 0),
+					size: new Size(SPRITE_WIDTH, SPRITE_HEIGHT),
+				},
+			}
+		)
+
+		this.facing = startingPos === 'left' ? 'right' : 'left'
+		this.groundY =
+			ground.position.top - SPRITE_HEIGHT * SPRITE_SCALE + SPRITE_BOTTOM_OFFSET
 		this.childEntities = [this.attackBox, this.hitBox]
 		this._state.enter()
 	}
@@ -74,8 +100,17 @@ export class Knight extends Entity {
 
 	private _handleVelocity() {
 		this.velocityY += this.velocityYGravity
+
+		let x = this.velocityX
+
+		if (x < 0 && this.bounds.position.left + 1 >= this.position.left) {
+			x = 0
+		} else if (x > 0 && this.bounds.position.right - 1 <= this.position.right) {
+			x = 0
+		}
+
 		this.vector.velocity({
-			x: this.velocityX,
+			x,
 			y: this.vector.y + this.velocityY <= this.groundY ? this.velocityY : 0,
 		})
 	}

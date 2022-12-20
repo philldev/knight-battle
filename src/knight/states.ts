@@ -13,21 +13,21 @@ export type KnightStates =
 
 export class KnightState {
 	constructor(public name: KnightStates) {}
-	enter() {}
-	update() {}
+	public enter() {}
+	public update() {}
 }
 
 export class Idle extends KnightState {
-	constructor(public knight: Knight) {
-		super('IDLE')
-	}
-
 	readonly frameY = {
 		left: 1,
 		right: 0,
 	}
 
-	enter() {
+	constructor(public knight: Knight) {
+		super('IDLE')
+	}
+
+	public override enter() {
 		this.knight.spriteFrameX = 0
 		this.knight.spriteFrameY = this.frameY[this.knight.facing]
 		this.knight.spriteMaxFrameX = 3

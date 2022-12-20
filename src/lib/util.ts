@@ -68,14 +68,24 @@ export class RectPosition {
 	}
 
 	isColliding(target: RectPosition) {
-		if (
+		return (
 			((this.left >= target.left && this.left <= target.right) ||
 				(target.right >= this.left && target.left <= this.right)) &&
 			((this.bottom >= target.top && this.top <= target.bottom) ||
 				(target.bottom >= this.top && target.top <= this.bottom))
-		) {
-			return true
-		}
-		return false
+		)
+	}
+
+	isWithin(target: RectPosition) {
+		return (
+			this.bottom < target.bottom &&
+			this.right < target.right &&
+			this.left > target.left &&
+			this.top > target.top
+		)
+	}
+
+	isOnTop(target: RectPosition) {
+		return this.top > target.top
 	}
 }

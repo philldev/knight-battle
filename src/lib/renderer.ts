@@ -12,8 +12,8 @@ export class Canvas {
 	}) {
 		this.element = this._createCanvas()
 
-		this.element.width = 1280
-		this.element.height = 720
+		this.element.width = 800
+		this.element.height = 400
 
 		if (data.fullscreen) {
 			this._setCanvasSizeToFullScreen()
