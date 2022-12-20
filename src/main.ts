@@ -58,8 +58,8 @@ const ground = new Entity(
 	'transparent',
 	1
 )
-const knight = new Knight('left', KEY_MAP[1], bounds, ground)
-const knight2 = new Knight('right', KEY_MAP[2], bounds, ground)
+const knight = new Knight('left', KEY_MAP[1], bounds, ground, 'Player 1')
+const knight2 = new Knight('right', KEY_MAP[2], bounds, ground, 'Enemy')
 
 knight.addTarget(knight2)
 

@@ -85,3 +85,23 @@ export class Entity {
 		return this._renderer
 	}
 }
+
+export class TextEntity extends Entity {
+	constructor(
+		vector: Vector2,
+		fill: string,
+		public text: string,
+		public font: string
+	) {
+		super(vector, new Size(0, 0), fill, 1)
+	}
+
+	public render(): void {
+		this.renderer.drawText({
+			fill: this.fill,
+			font: this.font,
+			position: this.vector,
+			text: this.text,
+		})
+	}
+}

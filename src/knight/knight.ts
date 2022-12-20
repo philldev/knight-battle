@@ -1,6 +1,7 @@
 import knight from '../assets/knight.png'
 import { Entity } from '../lib/entity'
 import { Size, Vector2 } from '../lib/util'
+import { KnightInfo } from './knight-info'
 import { AttackBox } from './attackbox'
 import { HitBox } from './hitbox'
 import { Idle, KnightState, KnightStates } from './states'
@@ -28,9 +29,14 @@ export class Knight extends Entity {
 
 	public attackBox = new AttackBox(this)
 	public hitBox = new HitBox(this)
+	public knightInfo: KnightInfo
+
+	public hp = 8
+
 	public facing: Facing = 'right'
 	public target?: Knight
 
+	public disableAnimation = false
 	public spriteFrameX = 0
 	public spriteMaxFrameX = 0
 	public spriteFrameY = 0
@@ -46,7 +52,8 @@ export class Knight extends Entity {
 		startingPos: 'left' | 'right',
 		readonly KEY_MAP: KeyMap,
 		public readonly bounds: Entity,
-		public readonly ground: Entity
+		public readonly ground: Entity,
+		public readonly name: string
 	) {
 		const img = new Image()
 		img.src = knight
@@ -74,12 +81,13 @@ export class Knight extends Entity {
 		this.facing = startingPos === 'left' ? 'right' : 'left'
 		this.groundY =
 			ground.position.top - SPRITE_HEIGHT * SPRITE_SCALE + SPRITE_BOTTOM_OFFSET
-		this.childEntities = [this.attackBox, this.hitBox]
+		this.knightInfo = new KnightInfo(this)
+		this.childEntities = [this.attackBox, this.hitBox, this.knightInfo]
 		this._state.enter()
 	}
 
 	public update(timestamp: number): void {
-		this._animate(timestamp)
+		if (!this.disableAnimation) this._animate(timestamp)
 		this._handleVelocity()
 		this.state.update()
 	}

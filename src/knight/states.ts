@@ -10,6 +10,7 @@ export type KnightStates =
 	| 'ATTACK3'
 	| 'HURT'
 	| 'DEFEND'
+	| 'DIED'
 
 export class KnightState {
 	constructor(public name: KnightStates) {}
@@ -347,12 +348,16 @@ export class Hurt extends KnightState {
 		this.knight.spriteFrameY = this.frameY[this.knight.facing]
 		this.knight.velocityX = this.velocityX[this.knight.facing]
 		this.knight.isReverseSprite = false
+		if (this.knight.hp > 0) this.knight.hp -= 1
 	}
 
 	update() {
 		if (this.maxFrameX === this.knight.spriteFrameX) {
-			this.knight.state = new Idle(this.knight)
-			this.knight.spriteMaxFrame = this.knight.spriteMaxFrameDefault
+			if (this.knight.hp === 0) {
+				this.knight.state = new Died(this.knight)
+			} else {
+				this.knight.state = new Idle(this.knight)
+			}
 		}
 	}
 }
@@ -387,5 +392,35 @@ export class Defend extends KnightState {
 			this.knight.state = new Idle(this.knight)
 			this.knight.spriteMaxFrame = this.knight.spriteMaxFrameDefault
 		}
+	}
+}
+
+export class Died extends KnightState {
+	constructor(public knight: Knight) {
+		super('DIED')
+	}
+
+	readonly frameY = {
+		left: 15,
+		right: 14,
+	}
+
+	readonly velocityX = {
+		left: 0,
+		right: 0,
+	}
+
+	maxFrameX = 5
+
+	enter(): void {
+		this.knight.spriteFrameX = 0
+		this.knight.spriteMaxFrameX = this.maxFrameX
+		this.knight.spriteFrameY = this.frameY[this.knight.facing]
+		this.knight.velocityX = this.velocityX[this.knight.facing]
+		this.knight.isReverseSprite = false
+	}
+	public update(): void {
+		if (this.knight.spriteFrameX === this.maxFrameX)
+			this.knight.disableAnimation = true
 	}
 }

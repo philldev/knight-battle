@@ -97,9 +97,11 @@ export class Renderer {
 		position: Vector2
 		text: string
 	}): void {
+		this._ctx.strokeStyle = 'black'
 		this._ctx.font = params.font
 		this._ctx.fillStyle = params.fill
 		this._ctx.fillText(params.text, params.position.x, params.position.y)
+		this._ctx.strokeText(params.text, params.position.x, params.position.y)
 	}
 
 	/**

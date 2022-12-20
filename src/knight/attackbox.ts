@@ -21,6 +21,7 @@ export class AttackBox extends Entity {
 		WALK: { x: 50, y: 15 },
 		HURT: { x: 50, y: 15 },
 		DEFEND: { x: 50, y: 15 },
+		DIED: { x: 50, y: 15 },
 	}
 
 	constructor(private _knight: Knight) {
